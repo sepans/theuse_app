@@ -1,4 +1,7 @@
-   console.log('js');
+   
+var theuse = (function () {
+
+        console.log('js');
         
         
         
@@ -73,15 +76,15 @@
 
             	
             	var item;
-                item = '<li class="item" id="item-'+i+'"><a href="#" class="rect" onclick="opentext('+i+')"></a><ul class="segments">';
+                item = '<li class="item" id="item-'+i+'"><a href="#" class="rect" onclick="theuse.opentext(this,'+i+')"></a><ul class="segments">';
                 if(content_info[i].title=='youknow' || content_info[i].title=='dunno') {
-                    item=item+'<li class="circ seg" ><a href="#" class="circ" onclick="play_track('+i+');"><input class="state" type="hidden" value="0"/></a></li>';
+                    item=item+'<li class="circ seg" ><a href="#" class="circ" onclick="theuse.playTrack('+i+');"><input class="state" type="hidden" value="0"/></a></li>';
                 
                 }
                 else {
 
                     for(var j=0;j<content_info[i].segments.length;j++) {
-                        item=item+'<li class="circ seg-'+j+'"><a href="#" class="circ" onclick="play_track('+i+','+j+');"><input class="state" type="hidden" value="0"/></a></li>';
+                        item=item+'<li class="circ seg-'+j+'"><a href="#" class="circ" onclick="theuse.playTrack('+i+','+j+');"><input class="state" type="hidden" value="0"/></a></li>';
                     }
                 }
 	            item=item+'</ul></li>';
@@ -162,20 +165,49 @@
             
         }   //onbodyload
         
-        function opentext(item) {
+        function opentext(el, item) {
 
             if(areYouHere) {
                 $('#youarehere').hide();
                 areYouHere = false;
             }
 
+            $('.rect').css('background-color', '#aaa');
+            $(el).css('background-color', '#FF0000');
+
             //remove generated texts and pipes
             $('.gen-text').remove();
             $('svg').remove();
 
             $('#text-container h2').text(content_info[item].display_title);
-            var spans = wrapTextInSpans(content_info[item].body);
-            $('#text-container p').html(spans);
+            var wholeText = content_info[item].body;
+            var SECTIONS = 10;
+            var secLenght = Math.ceil(wholeText.length/SECTIONS);
+            var $container = $('#text-container p');
+            $container.html('');
+            for(var i=0; i<SECTIONS; i++)
+                (function(secCount) {
+                    
+                    setTimeout(function() { 
+                        console.log(secCount);
+                        var beg = secCount*secLenght;
+                        var end = Math.min((secCount+1)*secLenght, wholeText.length);
+                        console.log(beg+ ' end '+end);
+                        var section = wholeText.substring( beg , end);
+                        splitAndConcat( section, $container); 
+                        //secCount++;
+
+                        if(secCount == SECTIONS-1) {
+                            $('#text-container p .aword').on("click",function() {
+                                 synthesize(this);
+                            });
+                        }
+
+                    }, 100*secCount);
+                })(i);
+            
+            
+            $('#text-container').scrollTop(0);
            // $('#text-container').show();
             //scrollLeft(0);
 
@@ -183,20 +215,33 @@
 
 
             
-            $('#text-container p .aword').on("click",function() {
-                
-                synthesize(this);
 
-            });
         
+        }
+
+        function wrapTextInSpans(text) {
+            var spans = '';
+            var words = text.split(" ");
+            $.each(words, function(i, v) {
+                
+                 spans= spans.concat("<span class='aword'>"+v+" </span>");
+            });
+            
+            return spans;
+        
+        }
+
+
+        function splitAndConcat(section, $container) {
+            var spans = wrapTextInSpans(section);
+            $container.append(spans);
+
         }
 
         function synthesize(element) {
             console.log($(element).text());
                 $(element).css('color','#00F');
                 words[word_index] = {element:$(element),text: $(element).text()};
-                //words[word_index].text = $(element).text();
-                console.log('new word '+words[word_index]);
                 word_index = (word_index+1)%2;
                 
                 if(word_index==0) {
@@ -211,9 +256,14 @@
                      var widthSt = (50+Math.random()*40)+'%';
                      console.log(widthSt);
                      container.css('max-width', widthSt);
+
+                     var topAverage = (words[0].element.position().top + words[1].element.position().top)/2 ;
                      
-                     container.css('top', (5+Math.random()*70)+'%');
+                     container.css('top', topAverage+'px');
                      container.css('left', (Math.random()*20)+'%');
+
+                     console.log(words[0].element.position());
+                     console.log(words[1].element.position());
                      
                      jsPlumb.connect({
                         source:words[0].element,
@@ -231,8 +281,18 @@
                                 context: document.body
                                 }).done(function(data) { 
                                 
+                                var firstDot = data.indexOf('.');
+
+                                //  alert(firstDot);
+                                // alert(words[0].text.length*2);
+                                // alert(data.lastIndexOf('.'));
+
+                                var endOfSentence = firstDot>words[0].text.length*2 ? firstDot+1 : 
+                                        (data.lastIndexOf('.')>firstDot ? data.lastIndexOf('.') : data.length);
+
+                                // alert(endOfSentence);
                                  
-                                 var text = data.substring(0,data.indexOf('.')+1);
+                                var text = data.substring(0 , endOfSentence);
                                  
                                  $(container).text(text);
  
@@ -249,17 +309,6 @@
                 // jsPlumb.draggable($('#text-container p .aword'));
         }
         
-        function wrapTextInSpans(text) {
-            var spans = '';
-            var words = text.split(" ");
-            $.each(words, function(i, v) {
-                
-                 spans= spans.concat("<span class='aword'>"+v+" </span>");
-            });
-            
-            return spans;
-        
-        }
         
         function onDeviceReady()
         {
@@ -267,7 +316,7 @@
         //    alert('ready');
         }
         
-        function play_track(item,segment) {
+        function playTrack(item,segment) {
 
             if(areYouHere) {
                 $('#youarehere').hide();
@@ -374,12 +423,6 @@
         function playVid(title) {
         
         
-//        window.plugins.videoPlayer.play('video/'+title+'.webm');
-       // window.plugins.videoPlayer.play('file:///android_asset/www/video/itsatrick.mp4');
-      //  window.plugins.videoPlayer.play('file:///android_asset/www/video/7.mov');
-
-        //window.plugins.videoPlayer.play('video/itsatrick.mp4');
-        
         }
         
         /*
@@ -416,6 +459,13 @@
         }
         
         */
+
+        return {
+            opentext: opentext,
+            playTrack: playTrack,
+            playVid: playVid
+        }
+})();
         
         
   

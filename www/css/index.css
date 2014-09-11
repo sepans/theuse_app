@@ -23,20 +23,7 @@
 body {
     -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
     -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
-    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
-    background-color:#E4E4E4;
-    background-image:linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #A7A7A7),
-        color-stop(0.51, #E4E4E4)
-    );
-    background-attachment:fixed;
-    font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+    font-family: Arial, 'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
     font-size:12px;
     height:100%;
     margin:0px;
@@ -57,7 +44,7 @@ html, body {
 
 /* Portrait layout (default) */
 .app {
-    background:url(../img/logo.png) no-repeat center top; /* 170px x 200px */
+    
     position:absolute;             /* position in the center of the screen */
     left:50%;
     top:50%;
@@ -131,7 +118,7 @@ h1 {
                 
                 body {
                     background-color:#FFF;
-                    background-image: url('audio/carbonFiber.png');
+                    /*background-image: url('audio/carbonFiber.png');*/
                     font-size: 14px;
                     font-family: arial, sans-serif;
                     margin: 0;
@@ -180,6 +167,10 @@ h1 {
                     /*display: none;*/
                     overflow-y: scroll;
                     padding: 5px;
+                }
+
+                #text-container p {
+                    position: relative; /* to make gen text position independent of scroll */
                 }
 
                 #video-container {
@@ -286,7 +277,7 @@ h1 {
                     color: #00F;
                     top: 50px;
                     left: 10px;
-                    background-color: rgba(255,255,255,0.8);
+                    background-color: rgba(255,255,255,0.9);
                     
                 }
                 
